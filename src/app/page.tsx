@@ -15,19 +15,8 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  // Debounced arama
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      setSearchWallet(value);
-      if (canvasRef.current) {
-        drawCanvas(canvasRef.current, pieces, value);
-      }
-    }, 300),
-    [pieces]
-  );
-
   // Canvas'a çizim yapma fonksiyonu
-  const drawCanvas = (canvas: HTMLCanvasElement, pieces: Piece[], searchTerm: string = '') => {
+  const drawCanvas = useCallback((canvas: HTMLCanvasElement, currentPieces: Piece[], searchTerm: string = '') => {
     const ctx = canvas.getContext('2d');
     if (!ctx || !imageRef.current) return;
 
@@ -38,7 +27,7 @@ export default function Home() {
     ctx.drawImage(imageRef.current, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     // Açılmış parçaları çiz
-    pieces.forEach(piece => {
+    currentPieces.forEach(piece => {
       const row = Math.floor(piece.piece_id / GRID_SIZE);
       const col = piece.piece_id % GRID_SIZE;
       const x = col * PIECE_SIZE;
@@ -57,7 +46,23 @@ export default function Home() {
 
     // Opaklığı sıfırla
     ctx.globalAlpha = 1;
-  };
+  }, []);
+
+  // Debounced arama
+  const debouncedSearch = useCallback(
+    (value: string) => {
+      setSearchWallet(value);
+      if (canvasRef.current) {
+        drawCanvas(canvasRef.current, pieces, value);
+      }
+    },
+    [pieces, drawCanvas]
+  );
+
+  const debouncedSearchWithDelay = useCallback(
+    debounce((value: string) => debouncedSearch(value), 300),
+    [debouncedSearch]
+  );
 
   useEffect(() => {
     // Resmi yükle
@@ -88,14 +93,14 @@ export default function Home() {
     };
 
     fetchPieces();
-  }, []);
+  }, [pieces, drawCanvas]);
 
   // Canvas yeniden çizim
   useEffect(() => {
     if (canvasRef.current) {
       drawCanvas(canvasRef.current, pieces, searchWallet);
     }
-  }, [pieces, searchWallet]);
+  }, [pieces, searchWallet, drawCanvas]);
 
   if (loading) {
     return (
@@ -114,7 +119,7 @@ export default function Home() {
             <input
               type="text"
               placeholder="Search by wallet address..."
-              onChange={(e) => debouncedSearch(e.target.value)}
+              onChange={(e) => debouncedSearchWithDelay(e.target.value)}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>

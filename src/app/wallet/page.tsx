@@ -33,7 +33,7 @@ export default function WalletPage() {
       
       // Redirect to puzzle
       router.push('/puzzle');
-    } catch (err) {
+    } catch {
       setError('Geçersiz Solana cüzdan adresi');
     } finally {
       setLoading(false);

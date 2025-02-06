@@ -54,7 +54,7 @@ export default function GalleryPage() {
       
       {pieces.length === 0 ? (
         <p className="text-gray-500">
-          You haven't collected any puzzle pieces yet. Send some SOL to get started!
+          You haven&apos;t collected any puzzle pieces yet. Send some SOL to get started!
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
